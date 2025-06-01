@@ -287,8 +287,10 @@ let roundTimer = roundTime;
 let roundTimerInterval = null;
 
 function resetPlayer() {
-  player.x = canvas.width / 2;
-  player.y = canvas.height / 2;
+  // Use getSafeSpawn to ensure player never spawns in a wall
+  const spawn = getSafeSpawn(player.radius);
+  player.x = spawn.x;
+  player.y = spawn.y;
   player.health = 100;
   player.alive = true;
   player.weapon = selectedWeapon;
@@ -302,7 +304,7 @@ function resetPlayer() {
 // Find a safe spawn point not colliding with walls
 function getSafeSpawn(radius = 20) {
   let tries = 0;
-  while (tries < 100) {
+  while (tries < 300) { // Increased tries for reliability
     const x = Math.random() * (canvas.width - 2 * radius) + radius;
     const y = Math.random() * (canvas.height - 2 * radius) + radius;
     if (!collidesWithWalls(x, y, radius)) return { x, y };
