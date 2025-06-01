@@ -65,9 +65,15 @@ let walls = MAPS[0].map(w => ({...w}));
 
 // Weapons (with prices)
 const WEAPONS = {
-  pistol: { name: 'Pistol', ammo: 10, reserve: 30, damage: 34, price: 200 },
-  rifle: { name: 'Rifle', ammo: 30, reserve: 90, damage: 20, price: 1000 },
-  sniper: { name: 'Sniper', ammo: 5, reserve: 15, damage: 100, price: 3000 }
+  // Player weapons
+  glock:   { name: 'Glock', ammo: 20, reserve: 300, damage: 20, price: 200 },
+  ak47:    { name: 'AK-47', ammo: 30, reserve: 240, damage: 40, price: 1000 },
+  awm:     { name: 'AWM', ammo: 5, reserve: 50, damage: 500, price: 3000 },
+  rpg:     { name: 'RPG', ammo: 1, reserve: 20, damage: 10000, price: 10000, aoe: 100 },
+  // Bot weapons
+  pistol:  { name: 'Pistol', ammo: 10, reserve: 30, damage: 34, price: 200 },
+  m4:      { name: 'M4', ammo: 30, reserve: 90, damage: 20, price: 1000 },
+  magnum:  { name: 'Magnum', ammo: 5, reserve: 15, damage: 100, price: 3000 }
 };
 
 // Game state
@@ -75,7 +81,7 @@ let round = 1;
 let score = { player: 0, bots: 0 };
 let roundActive = false;
 let roundMsgTimeout = null;
-let selectedWeapon = 'pistol';
+let selectedWeapon = 'glock';
 
 // Money system
 let playerMoney = 800;
@@ -86,17 +92,17 @@ const player = {
   y: canvas.height / 2,
   angle: 0,
   speed: 3,
-  radius: isMobile() ? 4 : 14,
-  health: 100,
-  ammo: 10,
-  reserve: 30,
+  radius: 14,
+  health: 1000,
+  ammo: 20,
+  reserve: 300,
   isShooting: false,
   recoil: 0,
   isReloading: false,
   reloadTime: 60, // frames
   reloadTimer: 0,
   alive: true,
-  weapon: 'pistol',
+  weapon: 'glock',
 };
 
 // Bullets array for visible bullets
@@ -110,7 +116,7 @@ class Bot {
     this.y = y;
     this.angle = 0;
     this.speed = 2;
-    this.radius = isMobile() ? 4 : 14;
+    this.radius = 14;
     this.health = 100;
     this.ammo = 10;
     this.reloadTime = 60;
@@ -227,10 +233,17 @@ const buyMenu = document.getElementById('buyMenu');
 const roundMsg = document.getElementById('roundMsg');
 const scoreEl = document.getElementById('score');
 
+// Only show player weapons in buy menu
+const PLAYER_WEAPONS = ['glock', 'ak47', 'awm', 'rpg'];
 document.querySelectorAll('.buy-btn').forEach(btn => {
+  const weapon = btn.dataset.weapon;
+  if (!PLAYER_WEAPONS.includes(weapon)) {
+    btn.style.display = 'none';
+  } else {
+    btn.style.display = '';
+  }
   btn.onclick = () => {
-    const weapon = btn.dataset.weapon;
-    // Only update selection and highlight, do not deduct money here
+    if (!PLAYER_WEAPONS.includes(weapon)) return;
     if (selectedWeapon === weapon) {
       document.querySelectorAll('.buy-btn').forEach(b => b.style.background = '#333');
       btn.style.background = '#0a0';
@@ -263,13 +276,45 @@ document.getElementById('startRoundBtn').onclick = () => {
   startRound();
 };
 
+// Kill counter and high score
+let playerKills = 0;
+let highScore = parseInt(localStorage.getItem('cs2d_highscore') || '0', 10);
+
+function updateHighScoreDisplay() {
+  const highScoreDisplay = document.getElementById('highScoreDisplay');
+  if (highScoreDisplay) {
+    highScoreDisplay.textContent = `High Score: ${highScore} kills`;
+  }
+}
+
+function updateKillCounterDisplay() {
+  const killsEl = document.getElementById('cs-kills');
+  if (killsEl) killsEl.textContent = `Kills: ${playerKills}`;
+}
+
+function incrementKillCounter() {
+  playerKills++;
+  if (playerKills > highScore) {
+    highScore = playerKills;
+    localStorage.setItem('cs2d_highscore', highScore);
+    updateHighScoreDisplay();
+  }
+  updateKillCounterDisplay();
+}
+
 function showBuyMenu() {
   buyMenu.classList.remove('hidden');
+  updateHighScoreDisplay();
   document.querySelectorAll('.buy-btn').forEach(btn => {
     const weapon = btn.dataset.weapon;
-    const price = WEAPONS[weapon]?.price || 0;
-    btn.innerHTML = `${WEAPONS[weapon]?.name || weapon} ($${price})`;
-    btn.style.background = '#333';
+    if (!PLAYER_WEAPONS.includes(weapon)) {
+      btn.style.display = 'none';
+    } else {
+      btn.style.display = '';
+      const price = WEAPONS[weapon]?.price || 0;
+      btn.innerHTML = `${WEAPONS[weapon]?.name || weapon} ($${price})`;
+      btn.style.background = '#333';
+    }
   });
   const selectedBtn = document.querySelector('.buy-btn[data-weapon="' + selectedWeapon + '"]');
   if (selectedBtn) selectedBtn.style.background = '#0a0';
@@ -294,11 +339,10 @@ let roundTimer = roundTime;
 let roundTimerInterval = null;
 
 function resetPlayer() {
-  // Use getSafeSpawn to ensure player never spawns in a wall
   const spawn = getSafeSpawn(player.radius);
   player.x = spawn.x;
   player.y = spawn.y;
-  player.health = 100;
+  player.health = 1000;
   player.alive = true;
   player.weapon = selectedWeapon;
   player.ammo = WEAPONS[selectedWeapon].ammo;
@@ -323,11 +367,23 @@ function getSafeSpawn(radius = 20) {
 
 function resetBots() {
   bots = [];
-  for (let i = 0; i < 6; i++) {
+  for (let i = 0; i < 15; i++) {
     const spawn = getSafeSpawn();
     const bot = new Bot(spawn.x, spawn.y);
-    bot.weapon = selectedWeapon;
-    bot.ammo = WEAPONS[selectedWeapon].ammo;
+    // Assign bot weapons: 0-4 pistol, 5-9 m4, 10-14 magnum
+    if (i < 5) {
+      bot.weapon = 'pistol';
+      bot.ammo = WEAPONS.pistol.ammo;
+      bot.reserve = WEAPONS.pistol.reserve;
+    } else if (i < 10) {
+      bot.weapon = 'm4';
+      bot.ammo = WEAPONS.m4.ammo;
+      bot.reserve = WEAPONS.m4.reserve;
+    } else {
+      bot.weapon = 'magnum';
+      bot.ammo = WEAPONS.magnum.ammo;
+      bot.reserve = WEAPONS.magnum.reserve;
+    }
     bot.team = botsTeam;
     if (i % 2 === 1) bot.team = playerTeam;
     bots.push(bot);
@@ -343,6 +399,8 @@ function startRound(autoContinue = false) {
   // Only reset player if not auto-continue (i.e., if buy menu was shown)
   if (!autoContinue) {
     resetPlayer();
+    updateHighScoreDisplay();
+    updateKillCounterDisplay();
   }
   resetBots();
   roundActive = true;
@@ -362,7 +420,7 @@ function showMoneyPopup(amount, isRound = false) {
 
 // Restore player's health and ammo to full for their current weapon
 function restorePlayerHealthAndAmmo() {
-  player.health = 100;
+  player.health = 1000;
   player.ammo = WEAPONS[player.weapon].ammo;
   player.reserve = WEAPONS[player.weapon].reserve;
   player.isReloading = false;
@@ -404,13 +462,16 @@ if (restartGameBtn) {
     score.player = 0;
     score.bots = 0;
     playerMoney = 800;
-    selectedWeapon = 'pistol';
+    selectedWeapon = 'glock';
     resetPlayer();
     resetBots();
     updateHUD();
     hideRoundMsg();
     showRestartButton(false);
     showBuyMenu();
+    playerKills = 0;
+    updateHighScoreDisplay();
+    updateKillCounterDisplay();
   };
 }
 
@@ -424,14 +485,15 @@ function endRound(winner) {
     showMoneyPopup(500, true);
   } else if (winner === 'bots') {
     score.bots++;
-    // No money for losing
+    playerKills = 0;
+    updateKillCounterDisplay();
   }
   updateHUD();
   showRoundMsg(winner === 'player' ? 'Counter-Terrorists Win!' : winner === 'bots' ? 'Terrorists Win!' : 'Draw!');
   roundMsgTimeout = setTimeout(() => {
     // Only show buy menu if player lost or died
     if (winner === 'bots' || !player.alive) {
-      showBuyMenu();
+    showBuyMenu();
     }
     hideRoundMsg();
     // If player won and is alive, show post-win menu
@@ -503,66 +565,39 @@ function lineLine(x1, y1, x2, y2, x3, y3, x4, y4) {
   return ua >= 0 && ua <= 1 && ub >= 0 && ub <= 1;
 }
 
-function update() {
-  if (!roundActive) return;
-  if (!player.alive) {
-    endRound('bots');
-    return;
-  }
-  if (bots.every(bot => !bot.alive)) {
-    endRound('player');
-    return;
-  }
-  // Movement
-  let dx = 0, dy = 0;
-  if (keys['w']) dy -= 1;
-  if (keys['s']) dy += 1;
-  if (keys['a']) dx -= 1;
-  if (keys['d']) dx += 1;
-  if (dx !== 0 || dy !== 0) {
-    const len = Math.hypot(dx, dy);
-    dx /= len; dy /= len;
-    const nx = player.x + dx * player.speed;
-    const ny = player.y + dy * player.speed;
-    if (!collidesWithWalls(nx, ny, player.radius)) {
-      player.x = nx;
-      player.y = ny;
-    }
-  }
-  // Clamp to canvas
-  player.x = Math.max(player.radius, Math.min(canvas.width - player.radius, player.x));
-  player.y = Math.max(player.radius, Math.min(canvas.height - player.radius, player.y));
-
-  // Aim
-  player.angle = Math.atan2(mouse.y - player.y, mouse.x - player.x);
-
-  // Shooting
-  if (player.isShooting && player.ammo > 0 && !player.shootCooldown && !player.isReloading) {
-    shoot();
-    player.shootCooldown = 10; // frames
-  }
-  if (player.shootCooldown) player.shootCooldown--;
-
-  // Reloading
-  if (player.isReloading) {
-    player.reloadTimer--;
-    if (player.reloadTimer <= 0) {
-      const needed = WEAPONS[player.weapon].ammo - player.ammo;
-      const toLoad = Math.min(needed, player.reserve);
-      player.ammo += toLoad;
-      player.reserve -= toLoad;
-      player.isReloading = false;
-    }
-  }
-
-  // Recoil decay
-  player.recoil *= 0.8;
-
-  // Bots update
-  bots.forEach(bot => bot.update());
-}
-
+// RPG shooting logic
+let explosions = [];
 function shoot() {
+  if (player.weapon === 'rpg') {
+    player.ammo--;
+    player.recoil = 10;
+    // Find hit point
+    let hit = false;
+    let shotX = player.x, shotY = player.y;
+    let endX = player.x, endY = player.y;
+    for (let t = 0; t < 1; t += 0.01) {
+      const px = player.x + Math.cos(player.angle) * t * 1000;
+      const py = player.y + Math.sin(player.angle) * t * 1000;
+      if (collidesWithWalls(px, py, 8)) break;
+      shotX = px; shotY = py;
+      endX = px; endY = py;
+    }
+    // Create explosion
+    explosions.push({ x: endX, y: endY, r: 0, maxR: WEAPONS.rpg.aoe, alpha: 1, time: 0 });
+    // Damage bots in radius
+    bots.forEach(bot => {
+      if (!bot.alive) return;
+      const dist = Math.hypot(bot.x - endX, bot.y - endY);
+      if (dist < WEAPONS.rpg.aoe) {
+        bot.health = 0;
+        bot.alive = false;
+        playerMoney += 300;
+        showMoneyPopup(300);
+        incrementKillCounter();
+      }
+    });
+    return;
+  }
   player.ammo--;
   player.recoil = 10;
   // Visual bullet
@@ -584,6 +619,7 @@ function shoot() {
           bot.alive = false;
           playerMoney += 300;
           showMoneyPopup(300);
+          incrementKillCounter();
         }
         hit = true;
       }
@@ -652,6 +688,21 @@ function render() {
     ctx.restore();
   });
   bullets = bullets.filter(b => b.time-- > 0);
+
+  // Draw explosions
+  explosions.forEach(expl => {
+    ctx.save();
+    ctx.globalAlpha = expl.alpha;
+    const grad = ctx.createRadialGradient(expl.x, expl.y, 0, expl.x, expl.y, expl.r);
+    grad.addColorStop(0, 'rgba(255,255,100,0.8)');
+    grad.addColorStop(0.4, 'rgba(255,120,0,0.5)');
+    grad.addColorStop(1, 'rgba(255,0,0,0)');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(expl.x, expl.y, expl.r, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  });
 
   // --- Fake 3D: Perspective scale function ---
   function perspectiveScale(y) {
@@ -996,7 +1047,7 @@ function render() {
   ctx.fillStyle = '#222';
   ctx.fillRect(-15, -42, 30, 6);
   ctx.fillStyle = '#0f0';
-  ctx.fillRect(-15, -42, 30 * Math.max(0, player.health) / 100, 6);
+  ctx.fillRect(-15, -42, 30 * Math.max(0, player.health) / 1000, 6);
   ctx.strokeStyle = '#fff';
   ctx.lineWidth = 1.2;
   ctx.strokeRect(-15, -42, 30, 6);
@@ -1018,6 +1069,8 @@ function updateHUD() {
   // Health
   const healthEl = document.getElementById('cs-health');
   if (healthEl) healthEl.textContent = player.health;
+  // Kills
+  updateKillCounterDisplay();
   // Ammo
   const ammoEl = document.getElementById('cs-ammo');
   if (ammoEl) ammoEl.textContent = player.isReloading ? 'RELOADING' : `${player.ammo}/${player.reserve}`;
@@ -1045,7 +1098,7 @@ function gameLoop() {
 
 // Start with buy menu
 showBuyMenu();
-gameLoop();
+gameLoop(); 
 
 // Mobile controls logic
 const btnLeft = document.getElementById('btn-left');
@@ -1101,10 +1154,84 @@ if (btnReload) {
   btnReload.addEventListener('mousedown', e => { setKey('r', true); setTimeout(() => setKey('r', false), 100); });
 }
 
-// Adjust player and bot size and health for mobile
-if (isMobile()) {
-  player.radius = 4;
-  player.x = canvas.width / 2;
-  player.y = canvas.height / 2;
-  player.health = 300;
+// Set fixed values
+let WALL_SCALE = 0.6;
+player.radius = 14;
+if (typeof bots !== 'undefined') bots.forEach(bot => bot.radius = 14);
+
+// Remove adjustEntitySizes and resize logic
+// ... existing code ... 
+
+// Update explosions
+function update() {
+  if (!roundActive) return;
+  if (!player.alive) {
+    endRound('bots');
+    return;
+  }
+  if (bots.every(bot => !bot.alive)) {
+    endRound('player');
+    return;
+  }
+  // Movement
+  let dx = 0, dy = 0;
+  if (keys['w']) dy -= 1;
+  if (keys['s']) dy += 1;
+  if (keys['a']) dx -= 1;
+  if (keys['d']) dx += 1;
+  if (dx !== 0 || dy !== 0) {
+    const len = Math.hypot(dx, dy);
+    dx /= len; dy /= len;
+    const nx = player.x + dx * player.speed;
+    const ny = player.y + dy * player.speed;
+    if (!collidesWithWalls(nx, ny, player.radius)) {
+      player.x = nx;
+      player.y = ny;
+    }
+  }
+  // Clamp to canvas
+  player.x = Math.max(player.radius, Math.min(canvas.width - player.radius, player.x));
+  player.y = Math.max(player.radius, Math.min(canvas.height - player.radius, player.y));
+
+  // Aim
+  player.angle = Math.atan2(mouse.y - player.y, mouse.x - player.x);
+
+  // Shooting
+  if (player.isShooting && player.ammo > 0 && !player.shootCooldown && !player.isReloading) {
+    shoot();
+    player.shootCooldown = 10; // frames
+  }
+  if (player.shootCooldown) player.shootCooldown--;
+
+  // Auto-reload if magazine is empty
+  if (player.ammo === 0 && player.reserve > 0 && !player.isReloading && player.alive) {
+    player.isReloading = true;
+    player.reloadTimer = player.reloadTime;
+  }
+
+  // Reloading
+  if (player.isReloading) {
+    player.reloadTimer--;
+    if (player.reloadTimer <= 0) {
+      const needed = WEAPONS[player.weapon].ammo - player.ammo;
+      const toLoad = Math.min(needed, player.reserve);
+      player.ammo += toLoad;
+      player.reserve -= toLoad;
+      player.isReloading = false;
+    }
+  }
+
+  // Recoil decay
+  player.recoil *= 0.8;
+
+  // Bots update
+  bots.forEach(bot => bot.update());
+
+  // Update explosions
+  explosions.forEach(expl => {
+    expl.r += 8;
+    expl.alpha -= 0.07;
+    expl.time++;
+  });
+  explosions = explosions.filter(e => e.alpha > 0 && e.r < e.maxR * 1.5);
 } 

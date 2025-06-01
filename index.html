@@ -18,7 +18,7 @@
   <div id="cs-killfeed"></div>
   <div id="cs-scoreboard" class="hidden"></div>
   <canvas id="gameCanvas"></canvas>
-  <div id="cs-hud-health"><span id="cs-health">100</span></div>
+  <div id="cs-hud-health"><span id="cs-health">100</span> <span id="cs-kills" style="margin-left:18px;font-size:1.2rem;color:#ffd700;">Kills: 0</span></div>
   <div id="cs-hud-ammo">
     <span id="cs-weapon">Pistol</span>
     <span id="cs-ammo">10/30</span>
@@ -26,9 +26,11 @@
   </div>
   <div id="buyMenu" class="overlay hidden">
     <h2>Buy Menu</h2>
-    <button class="buy-btn" data-weapon="pistol">Pistol ($0)</button>
-    <button class="buy-btn" data-weapon="rifle">Rifle ($0)</button>
-    <button class="buy-btn" data-weapon="sniper">Sniper ($0)</button>
+    <div id="highScoreDisplay" style="margin-bottom: 10px; font-size: 1.1rem; color: #ffd700;"></div>
+    <button class="buy-btn" data-weapon="glock">Glock ($200)</button>
+    <button class="buy-btn" data-weapon="ak47">AK-47 ($1000)</button>
+    <button class="buy-btn" data-weapon="awm">AWM ($3000)</button>
+    <button class="buy-btn" data-weapon="rpg">RPG ($10000)</button>
     <br><br>
     <button id="startRoundBtn">Start Round</button>
   </div>
