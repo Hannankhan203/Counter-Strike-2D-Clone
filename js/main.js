@@ -11,44 +11,52 @@ function isMobile() {
 
 // Define normal and mobile maps
 const MAPS_DESKTOP = [
-  // Enhanced Main Map
+  // Scaled down and more open Main Map
   [
     // Central area
-    { x: 600, y: 350, w: 80, h: 200 },
-    { x: 700, y: 200, w: 200, h: 40 },
-    { x: 900, y: 400, w: 40, h: 200 },
+    { x: 600 * 0.6, y: 350 * 0.6, w: 80 * 0.6, h: 200 * 0.6 },
+    { x: 700 * 0.6, y: 200 * 0.6, w: 200 * 0.6, h: 40 * 0.6 },
+    { x: 900 * 0.6, y: 400 * 0.6, w: 40 * 0.6, h: 200 * 0.6 },
     // Left side
-    { x: 200, y: 200, w: 250, h: 30 },
-    { x: 300, y: 500, w: 30, h: 200 },
-    { x: 150, y: 600, w: 200, h: 30 },
+    { x: 200 * 0.6, y: 200 * 0.6, w: 250 * 0.6, h: 30 * 0.6 },
+    { x: 300 * 0.6, y: 500 * 0.6, w: 30 * 0.6, h: 200 * 0.6 },
+    { x: 150 * 0.6, y: 600 * 0.6, w: 200 * 0.6, h: 30 * 0.6 },
     // Right side
-    { x: 1100, y: 250, w: 30, h: 250 },
-    { x: 1000, y: 500, w: 200, h: 30 },
-    { x: 1200, y: 600, w: 30, h: 200 },
+    { x: 1100 * 0.6, y: 250 * 0.6, w: 30 * 0.6, h: 250 * 0.6 },
+    { x: 1000 * 0.6, y: 500 * 0.6, w: 200 * 0.6, h: 30 * 0.6 },
+    { x: 1200 * 0.6, y: 600 * 0.6, w: 30 * 0.6, h: 200 * 0.6 },
+    // New right-side walls for more cover (desktop)
+    { x: 1280 * 0.6, y: 320 * 0.6, w: 40 * 0.6, h: 120 * 0.6 }, // vertical wall (moved further right)
+    { x: 1150 * 0.6, y: 600 * 0.6, w: 80 * 0.6, h: 30 * 0.6 }, // horizontal wall (moved lower)
+    { x: 1200 * 0.6, y: 180 * 0.6, w: 30 * 0.6, h: 80 * 0.6 }, // short vertical wall (moved up)
     // Top and bottom
-    { x: 500, y: 100, w: 400, h: 30 },
-    { x: 500, y: 700, w: 400, h: 30 },
+    { x: 500 * 0.6, y: 100 * 0.6, w: 400 * 0.6, h: 30 * 0.6 },
+    { x: 500 * 0.6, y: 700 * 0.6, w: 400 * 0.6, h: 30 * 0.6 },
     // Diagonal cover
-    { x: 400, y: 400, w: 120, h: 20 },
-    { x: 900, y: 600, w: 120, h: 20 }
+    { x: 400 * 0.6, y: 400 * 0.6, w: 120 * 0.6, h: 20 * 0.6 },
+    { x: 900 * 0.6, y: 600 * 0.6, w: 120 * 0.6, h: 20 * 0.6 }
   ]
 ];
 const MAPS_MOBILE = [
   [
     // Central area
-    { x: 180, y: 120, w: 40, h: 80 },
-    { x: 260, y: 80, w: 80, h: 20 },
-    { x: 340, y: 180, w: 20, h: 80 },
-    { x: 60, y: 80, w: 80, h: 14 },
-    { x: 100, y: 180, w: 14, h: 80 },
-    { x: 40, y: 220, w: 80, h: 14 },
-    { x: 380, y: 100, w: 14, h: 80 },
-    { x: 340, y: 220, w: 80, h: 14 },
-    { x: 420, y: 240, w: 14, h: 80 },
-    { x: 120, y: 40, w: 120, h: 10 },
-    { x: 120, y: 260, w: 120, h: 10 },
-    { x: 180, y: 160, w: 40, h: 8 },
-    { x: 340, y: 240, w: 40, h: 8 }
+    { x: 180 * 0.6, y: 120 * 0.6, w: 40 * 0.6, h: 80 * 0.6 },
+    { x: 260 * 0.6, y: 80 * 0.6, w: 80 * 0.6, h: 20 * 0.6 },
+    { x: 340 * 0.6, y: 180 * 0.6, w: 20 * 0.6, h: 80 * 0.6 },
+    { x: 60 * 0.6, y: 80 * 0.6, w: 80 * 0.6, h: 14 * 0.6 },
+    { x: 100 * 0.6, y: 180 * 0.6, w: 14 * 0.6, h: 80 * 0.6 },
+    { x: 40 * 0.6, y: 220 * 0.6, w: 80 * 0.6, h: 14 * 0.6 },
+    { x: 380 * 0.6, y: 100 * 0.6, w: 14 * 0.6, h: 80 * 0.6 },
+    { x: 340 * 0.6, y: 220 * 0.6, w: 80 * 0.6, h: 14 * 0.6 },
+    { x: 420 * 0.6, y: 240 * 0.6, w: 14 * 0.6, h: 80 * 0.6 },
+    { x: 120 * 0.6, y: 40 * 0.6, w: 120 * 0.6, h: 10 * 0.6 },
+    { x: 120 * 0.6, y: 260 * 0.6, w: 120 * 0.6, h: 10 * 0.6 },
+    { x: 180 * 0.6, y: 160 * 0.6, w: 40 * 0.6, h: 8 * 0.6 },
+    { x: 340 * 0.6, y: 240 * 0.6, w: 40 * 0.6, h: 8 * 0.6 },
+    // New right-side walls for more cover (mobile)
+    { x: 470 * 0.6, y: 100 * 0.6, w: 20 * 0.6, h: 40 * 0.6 }, // vertical wall (moved further right)
+    { x: 400 * 0.6, y: 210 * 0.6, w: 40 * 0.6, h: 10 * 0.6 }, // horizontal wall (moved lower)
+    { x: 430 * 0.6, y: 40 * 0.6, w: 10 * 0.6, h: 30 * 0.6 }, // short vertical wall (moved up)
   ]
 ];
 const MAPS = isMobile() ? MAPS_MOBILE : MAPS_DESKTOP;
@@ -78,7 +86,7 @@ const player = {
   y: canvas.height / 2,
   angle: 0,
   speed: 3,
-  radius: 20,
+  radius: isMobile() ? 4 : 14,
   health: 100,
   ammo: 10,
   reserve: 30,
@@ -102,7 +110,7 @@ class Bot {
     this.y = y;
     this.angle = 0;
     this.speed = 2;
-    this.radius = 20;
+    this.radius = isMobile() ? 4 : 14;
     this.health = 100;
     this.ammo = 10;
     this.reloadTime = 60;
@@ -117,7 +125,6 @@ class Bot {
     this.strafeDir = Math.random() < 0.5 ? 1 : -1;
     this.reactionTimer = 0;
     this.aimError = 0;
-    if (isMobile()) this.radius = 5;
   }
   update() {
     if (!this.alive) return;
@@ -1096,7 +1103,7 @@ if (btnReload) {
 
 // Adjust player and bot size and health for mobile
 if (isMobile()) {
-  player.radius = 5;
+  player.radius = 4;
   player.x = canvas.width / 2;
   player.y = canvas.height / 2;
   player.health = 300;

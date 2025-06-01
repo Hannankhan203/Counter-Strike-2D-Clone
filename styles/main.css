@@ -317,7 +317,7 @@ html, body {
   10% { opacity: 1; transform: translateY(0) scale(1.05); }
   80% { opacity: 1; }
   100% { opacity: 0; transform: translateY(-40px) scale(1); }
-}
+} 
 /* Responsive and mobile-friendly styles */
 @media (max-width: 900px) {
   #cs-topbar {
