@@ -312,9 +312,62 @@ html, body {
   color: #ffd700;
   border-color: #ffd700;
 }
+.cs-money-popup.minus {
+  color: #ff4444;
+  border-color: #ff4444;
+}
 @keyframes moneyPopupAnim {
   0% { opacity: 0; transform: translateY(30px) scale(0.9); }
   10% { opacity: 1; transform: translateY(0) scale(1.05); }
   80% { opacity: 1; }
   100% { opacity: 0; transform: translateY(-40px) scale(1); }
+}
+#postWinMenu h2 {
+  margin-bottom: 18px;
+  font-size: 2.2rem;
+  letter-spacing: 2px;
+  color: #00e6d0;
+  text-shadow: 0 2px 8px #000, 0 0 4px #00e6d099;
+  font-weight: 700;
+}
+#postWinMenu p {
+  font-size: 1.2rem;
+  color: #fff;
+  margin-bottom: 28px;
+  letter-spacing: 1px;
+}
+#postWinMenu button {
+  margin: 10px 18px;
+  padding: 16px 38px;
+  font-size: 1.15rem;
+  border: none;
+  border-radius: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  cursor: pointer;
+  box-shadow: 0 2px 16px 0 #00e6d044, 0 2px 8px rgba(0,0,0,0.18);
+  outline: none;
+  transition: background 0.2s, color 0.2s, transform 0.1s, box-shadow 0.2s;
+}
+#keepWeaponBtn {
+  background: linear-gradient(135deg, #232526 0%, #00e6d0 100%);
+  color: #fff;
+  border: 2px solid #00e6d0;
+}
+#keepWeaponBtn:hover, #keepWeaponBtn:focus {
+  background: linear-gradient(135deg, #00e6d0 0%, #232526 100%);
+  color: #232526;
+  transform: translateY(-2px) scale(1.06);
+  box-shadow: 0 4px 24px 0 #00e6d088, 0 2px 8px #0002;
+}
+#buyNewWeaponBtn {
+  background: linear-gradient(135deg, #ffd700 0%, #232526 100%);
+  color: #232526;
+  border: 2px solid #ffd700;
+}
+#buyNewWeaponBtn:hover, #buyNewWeaponBtn:focus {
+  background: linear-gradient(135deg, #232526 0%, #ffd700 100%);
+  color: #ffd700;
+  transform: translateY(-2px) scale(1.06);
+  box-shadow: 0 4px 24px 0 #ffd70088, 0 2px 8px #0002;
 } 

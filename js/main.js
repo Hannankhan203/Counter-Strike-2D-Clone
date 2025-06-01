@@ -198,30 +198,49 @@ const scoreEl = document.getElementById('score');
 document.querySelectorAll('.buy-btn').forEach(btn => {
   btn.onclick = () => {
     const weapon = btn.dataset.weapon;
-    const price = WEAPONS[weapon]?.price || 0;
-    if (playerMoney >= price) {
-      selectedWeapon = weapon;
-      playerMoney -= price;
+    // Only update selection and highlight, do not deduct money here
+    if (selectedWeapon === weapon) {
       document.querySelectorAll('.buy-btn').forEach(b => b.style.background = '#333');
       btn.style.background = '#0a0';
-    } else {
+      return;
+    }
+    selectedWeapon = weapon;
+    document.querySelectorAll('.buy-btn').forEach(b => b.style.background = '#333');
+    btn.style.background = '#0a0';
+  };
+});
+
+document.getElementById('startRoundBtn').onclick = () => {
+  const weapon = selectedWeapon;
+  const price = WEAPONS[weapon]?.price || 0;
+  if (playerMoney < price) {
+    // Not enough money, show error and do not start round
+    const btn = document.querySelector('.buy-btn[data-weapon="' + weapon + '"]');
+    if (btn) {
       btn.style.background = '#a00';
       setTimeout(() => btn.style.background = '#333', 400);
     }
-  };
-});
-document.getElementById('startRoundBtn').onclick = startRound;
+    showRoundMsg('Not enough money!');
+    setTimeout(hideRoundMsg, 1200);
+    return;
+  }
+  if (price > 0) {
+    playerMoney -= price;
+    showMoneyPopup(-price);
+  }
+  startRound();
+};
 
 function showBuyMenu() {
   buyMenu.classList.remove('hidden');
-  selectedWeapon = 'pistol';
   document.querySelectorAll('.buy-btn').forEach(btn => {
     const weapon = btn.dataset.weapon;
     const price = WEAPONS[weapon]?.price || 0;
     btn.innerHTML = `${WEAPONS[weapon]?.name || weapon} ($${price})`;
     btn.style.background = '#333';
   });
-  document.querySelector('.buy-btn[data-weapon="pistol"]').style.background = '#0a0';
+  const selectedBtn = document.querySelector('.buy-btn[data-weapon="' + selectedWeapon + '"]');
+  if (selectedBtn) selectedBtn.style.background = '#0a0';
 }
 function hideBuyMenu() {
   buyMenu.classList.add('hidden');
@@ -238,7 +257,7 @@ function hideRoundMsg() {
 const TEAMS = ['T', 'CT'];
 let playerTeam = 'CT';
 let botsTeam = 'T';
-let roundTime = 90; // seconds per round
+let roundTime = Infinity; // No time limit
 let roundTimer = roundTime;
 let roundTimerInterval = null;
 
@@ -281,25 +300,19 @@ function resetBots() {
   }
 }
 
-function startRound() {
+function startRound(autoContinue = false) {
   // Always use the single map
   mapIndex = 0;
   walls = MAPS[0].map(w => ({...w}));
   hideBuyMenu();
   hideRoundMsg();
-  resetPlayer();
+  // Only reset player if not auto-continue (i.e., if buy menu was shown)
+  if (!autoContinue) {
+    resetPlayer();
+  }
   resetBots();
   roundActive = true;
-  roundTimer = roundTime;
   if (roundTimerInterval) clearInterval(roundTimerInterval);
-  roundTimerInterval = setInterval(() => {
-    if (!roundActive) return;
-    roundTimer--;
-    updateHUD();
-    if (roundTimer <= 0) {
-      endRound('draw');
-    }
-  }, 1000);
 }
 
 // Show money popup
@@ -307,13 +320,68 @@ function showMoneyPopup(amount, isRound = false) {
   const popups = document.getElementById('cs-money-popups');
   if (!popups) return;
   const div = document.createElement('div');
-  div.className = 'cs-money-popup' + (isRound ? ' round' : '');
+  div.className = 'cs-money-popup' + (isRound ? ' round' : '') + (amount < 0 ? ' minus' : '');
   div.textContent = (amount > 0 ? '+' : '') + '$' + amount;
   popups.appendChild(div);
   setTimeout(() => { div.remove(); }, 1200);
 }
 
+// Restore player's health and ammo to full for their current weapon
+function restorePlayerHealthAndAmmo() {
+  player.health = 100;
+  player.ammo = WEAPONS[player.weapon].ammo;
+  player.reserve = WEAPONS[player.weapon].reserve;
+  player.isReloading = false;
+  player.reloadTimer = 0;
+}
+
+const postWinMenu = document.getElementById('postWinMenu');
+const keepWeaponBtn = document.getElementById('keepWeaponBtn');
+const buyNewWeaponBtn = document.getElementById('buyNewWeaponBtn');
+
+function showPostWinMenu() {
+  postWinMenu.classList.remove('hidden');
+}
+function hidePostWinMenu() {
+  postWinMenu.classList.add('hidden');
+}
+if (keepWeaponBtn && buyNewWeaponBtn) {
+  keepWeaponBtn.onclick = () => {
+    restorePlayerHealthAndAmmo();
+    hidePostWinMenu();
+    setTimeout(() => {
+      startRound(true);
+    }, 200);
+  };
+  buyNewWeaponBtn.onclick = () => {
+    hidePostWinMenu();
+    showBuyMenu();
+  };
+}
+
+const restartGameBtn = document.getElementById('restartGameBtn');
+
+function showRestartButton(show) {
+  if (restartGameBtn) restartGameBtn.style.display = show ? '' : 'none';
+}
+if (restartGameBtn) {
+  restartGameBtn.onclick = () => {
+    // Reset all game state
+    score.player = 0;
+    score.bots = 0;
+    playerMoney = 800;
+    selectedWeapon = 'pistol';
+    resetPlayer();
+    resetBots();
+    updateHUD();
+    hideRoundMsg();
+    showRestartButton(false);
+    showBuyMenu();
+  };
+}
+
 function endRound(winner) {
+  if (!roundActive) return; // Prevent double endRound calls
   roundActive = false;
   if (roundTimerInterval) clearInterval(roundTimerInterval);
   if (winner === 'player') {
@@ -327,8 +395,15 @@ function endRound(winner) {
   updateHUD();
   showRoundMsg(winner === 'player' ? 'Counter-Terrorists Win!' : winner === 'bots' ? 'Terrorists Win!' : 'Draw!');
   roundMsgTimeout = setTimeout(() => {
-    showBuyMenu();
+    // Only show buy menu if player lost or died
+    if (winner === 'bots' || !player.alive) {
+      showBuyMenu();
+    }
     hideRoundMsg();
+    // If player won and is alive, show post-win menu
+    if (winner === 'player' && player.alive) {
+      showPostWinMenu();
+    }
   }, 2000);
 }
 
@@ -918,13 +993,7 @@ function updateHUD() {
   // Money
   const moneyEl = document.getElementById('cs-money');
   if (moneyEl) moneyEl.textContent = `$${playerMoney}`;
-  // Top bar: timer, round, team scores
-  const timerEl = document.getElementById('cs-timer');
-  if (timerEl) {
-    const min = Math.floor(roundTimer / 60);
-    const sec = (roundTimer % 60).toString().padStart(2, '0');
-    timerEl.textContent = `${min}:${sec}`;
-  }
+  // Top bar: round, team scores (no timer)
   const roundEl = document.getElementById('cs-round');
   if (roundEl) roundEl.textContent = `Round ${score.player + score.bots + 1}`;
   const ctScoreEl = document.getElementById('cs-ct-score');

@@ -10,7 +10,7 @@
   <div id="cs-topbar">
     <div class="cs-team cs-team-ct"><span id="cs-ct-name">CT</span> <span id="cs-ct-score">0</span></div>
     <div class="cs-round-info">
-      <span id="cs-timer">1:30</span>
+      <!-- <span id="cs-timer">1:30</span> -->
       <span id="cs-round">Round 1</span>
     </div>
     <div class="cs-team cs-team-t"><span id="cs-t-name">T</span> <span id="cs-t-score">0</span></div>
@@ -32,7 +32,15 @@
     <br><br>
     <button id="startRoundBtn">Start Round</button>
   </div>
-  <div id="roundMsg" class="overlay hidden"></div>
+  <div id="roundMsg" class="overlay hidden">
+    <button id="restartGameBtn" style="display:none; margin-top: 32px; padding: 16px 38px; font-size: 1.15rem; border-radius: 12px; font-weight: 700; letter-spacing: 1px; cursor: pointer; background: linear-gradient(135deg, #232526 0%, #00e6d0 100%); color: #fff; border: 2px solid #00e6d0;">Restart Game</button>
+  </div>
+  <div id="postWinMenu" class="overlay hidden">
+    <h2>Victory!</h2>
+    <p>What would you like to do for the next round?</p>
+    <button id="keepWeaponBtn">Keep Current Weapon</button>
+    <button id="buyNewWeaponBtn">Buy New Weapon</button>
+  </div>
   <div id="cs-money-popups"></div>
   <script src="js/main.js"></script>
 </body>
