@@ -4,8 +4,13 @@ const ctx = canvas.getContext('2d');
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
-// Map: static walls (rectangles)
-const MAPS = [
+// Utility to detect mobile
+function isMobile() {
+  return /Mobi|Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent) || window.innerWidth < 700;
+}
+
+// Define normal and mobile maps
+const MAPS_DESKTOP = [
   // Enhanced Main Map
   [
     // Central area
@@ -28,6 +33,25 @@ const MAPS = [
     { x: 900, y: 600, w: 120, h: 20 }
   ]
 ];
+const MAPS_MOBILE = [
+  [
+    // Central area
+    { x: 180, y: 120, w: 40, h: 80 },
+    { x: 260, y: 80, w: 80, h: 20 },
+    { x: 340, y: 180, w: 20, h: 80 },
+    { x: 60, y: 80, w: 80, h: 14 },
+    { x: 100, y: 180, w: 14, h: 80 },
+    { x: 40, y: 220, w: 80, h: 14 },
+    { x: 380, y: 100, w: 14, h: 80 },
+    { x: 340, y: 220, w: 80, h: 14 },
+    { x: 420, y: 240, w: 14, h: 80 },
+    { x: 120, y: 40, w: 120, h: 10 },
+    { x: 120, y: 260, w: 120, h: 10 },
+    { x: 180, y: 160, w: 40, h: 8 },
+    { x: 340, y: 240, w: 40, h: 8 }
+  ]
+];
+const MAPS = isMobile() ? MAPS_MOBILE : MAPS_DESKTOP;
 let mapIndex = 0;
 let walls = MAPS[0].map(w => ({...w}));
 
@@ -93,6 +117,7 @@ class Bot {
     this.strafeDir = Math.random() < 0.5 ? 1 : -1;
     this.reactionTimer = 0;
     this.aimError = 0;
+    if (isMobile()) this.radius = 5;
   }
   update() {
     if (!this.alive) return;
@@ -1011,4 +1036,66 @@ function gameLoop() {
 
 // Start with buy menu
 showBuyMenu();
-gameLoop(); 
+gameLoop();
+
+// Mobile controls logic
+const btnLeft = document.getElementById('btn-left');
+const btnRight = document.getElementById('btn-right');
+const btnUp = document.getElementById('btn-up');
+const btnDown = document.getElementById('btn-down');
+const btnShoot = document.getElementById('btn-shoot');
+const btnReload = document.getElementById('btn-reload');
+
+function setKey(key, pressed) {
+  keys[key] = pressed;
+}
+function setShooting(pressed) {
+  player.isShooting = pressed;
+}
+if (btnLeft) {
+  btnLeft.addEventListener('touchstart', e => { e.preventDefault(); setKey('a', true); });
+  btnLeft.addEventListener('touchend', e => { e.preventDefault(); setKey('a', false); });
+  btnLeft.addEventListener('mousedown', e => { setKey('a', true); });
+  btnLeft.addEventListener('mouseup', e => { setKey('a', false); });
+  btnLeft.addEventListener('mouseleave', e => { setKey('a', false); });
+}
+if (btnRight) {
+  btnRight.addEventListener('touchstart', e => { e.preventDefault(); setKey('d', true); });
+  btnRight.addEventListener('touchend', e => { e.preventDefault(); setKey('d', false); });
+  btnRight.addEventListener('mousedown', e => { setKey('d', true); });
+  btnRight.addEventListener('mouseup', e => { setKey('d', false); });
+  btnRight.addEventListener('mouseleave', e => { setKey('d', false); });
+}
+if (btnUp) {
+  btnUp.addEventListener('touchstart', e => { e.preventDefault(); setKey('w', true); });
+  btnUp.addEventListener('touchend', e => { e.preventDefault(); setKey('w', false); });
+  btnUp.addEventListener('mousedown', e => { setKey('w', true); });
+  btnUp.addEventListener('mouseup', e => { setKey('w', false); });
+  btnUp.addEventListener('mouseleave', e => { setKey('w', false); });
+}
+if (btnDown) {
+  btnDown.addEventListener('touchstart', e => { e.preventDefault(); setKey('s', true); });
+  btnDown.addEventListener('touchend', e => { e.preventDefault(); setKey('s', false); });
+  btnDown.addEventListener('mousedown', e => { setKey('s', true); });
+  btnDown.addEventListener('mouseup', e => { setKey('s', false); });
+  btnDown.addEventListener('mouseleave', e => { setKey('s', false); });
+}
+if (btnShoot) {
+  btnShoot.addEventListener('touchstart', e => { e.preventDefault(); setShooting(true); });
+  btnShoot.addEventListener('touchend', e => { e.preventDefault(); setShooting(false); });
+  btnShoot.addEventListener('mousedown', e => { setShooting(true); });
+  btnShoot.addEventListener('mouseup', e => { setShooting(false); });
+  btnShoot.addEventListener('mouseleave', e => { setShooting(false); });
+}
+if (btnReload) {
+  btnReload.addEventListener('touchstart', e => { e.preventDefault(); setKey('r', true); setTimeout(() => setKey('r', false), 100); });
+  btnReload.addEventListener('mousedown', e => { setKey('r', true); setTimeout(() => setKey('r', false), 100); });
+}
+
+// Adjust player and bot size and health for mobile
+if (isMobile()) {
+  player.radius = 5;
+  player.x = canvas.width / 2;
+  player.y = canvas.height / 2;
+  player.health = 300;
+} 
