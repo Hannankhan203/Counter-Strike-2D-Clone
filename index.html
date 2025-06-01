@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Minimal FPS Core</title>
+  <link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+  <div id="cs-topbar">
+    <div class="cs-team cs-team-ct"><span id="cs-ct-name">CT</span> <span id="cs-ct-score">0</span></div>
+    <div class="cs-round-info">
+      <span id="cs-timer">1:30</span>
+      <span id="cs-round">Round 1</span>
+    </div>
+    <div class="cs-team cs-team-t"><span id="cs-t-name">T</span> <span id="cs-t-score">0</span></div>
+  </div>
+  <div id="cs-killfeed"></div>
+  <div id="cs-scoreboard" class="hidden"></div>
+  <canvas id="gameCanvas"></canvas>
+  <div id="cs-hud-health"><span id="cs-health">100</span></div>
+  <div id="cs-hud-ammo">
+    <span id="cs-weapon">Pistol</span>
+    <span id="cs-ammo">10/30</span>
+    <span id="cs-money">$800</span>
+  </div>
+  <div id="buyMenu" class="overlay hidden">
+    <h2>Buy Menu</h2>
+    <button class="buy-btn" data-weapon="pistol">Pistol ($0)</button>
+    <button class="buy-btn" data-weapon="rifle">Rifle ($0)</button>
+    <button class="buy-btn" data-weapon="sniper">Sniper ($0)</button>
+    <br><br>
+    <button id="startRoundBtn">Start Round</button>
+  </div>
+  <div id="roundMsg" class="overlay hidden"></div>
+  <div id="cs-money-popups"></div>
+  <script src="js/main.js"></script>
+</body>
+</html> 
