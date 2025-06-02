@@ -367,15 +367,15 @@ function getSafeSpawn(radius = 20) {
 
 function resetBots() {
   bots = [];
-  for (let i = 0; i < 15; i++) {
+  for (let i = 0; i < 10; i++) {
     const spawn = getSafeSpawn();
     const bot = new Bot(spawn.x, spawn.y);
     // Assign bot weapons: 0-4 pistol, 5-9 m4, 10-14 magnum
-    if (i < 5) {
+    if (i < 3) {
       bot.weapon = 'pistol';
       bot.ammo = WEAPONS.pistol.ammo;
       bot.reserve = WEAPONS.pistol.reserve;
-    } else if (i < 10) {
+    } else if (i < 7) {
       bot.weapon = 'm4';
       bot.ammo = WEAPONS.m4.ammo;
       bot.reserve = WEAPONS.m4.reserve;
